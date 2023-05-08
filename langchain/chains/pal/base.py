@@ -67,10 +67,11 @@ class PALChain(Chain):
 
         :meta private:
         """
-        if not self.return_intermediate_steps:
-            return [self.output_key]
-        else:
-            return [self.output_key, "intermediate_steps"]
+        return (
+            [self.output_key, "intermediate_steps"]
+            if self.return_intermediate_steps
+            else [self.output_key]
+        )
 
     def _call(
         self,
@@ -83,7 +84,7 @@ class PALChain(Chain):
         )
         _run_manager.on_text(code, color="green", end="\n", verbose=self.verbose)
         repl = PythonREPL(_globals=self.python_globals, _locals=self.python_locals)
-        res = repl.run(code + f"\n{self.get_answer_expr}")
+        res = repl.run(f"{code}\n{self.get_answer_expr}")
         output = {self.output_key: res.strip()}
         if self.return_intermediate_steps:
             output["intermediate_steps"] = code

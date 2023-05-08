@@ -53,9 +53,11 @@ class WikipediaAPIWrapper(BaseModel):
             if wiki_page := self._fetch_page(page_title):
                 if summary := self._formatted_page_summary(page_title, wiki_page):
                     summaries.append(summary)
-        if not summaries:
-            return "No good Wikipedia Search Result was found"
-        return "\n\n".join(summaries)
+        return (
+            "\n\n".join(summaries)
+            if summaries
+            else "No good Wikipedia Search Result was found"
+        )
 
     @staticmethod
     def _formatted_page_summary(page_title: str, wiki_page: Any) -> Optional[str]:
@@ -81,14 +83,7 @@ class WikipediaAPIWrapper(BaseModel):
             if self.load_all_available_meta
             else {}
         )
-        doc = Document(
-            page_content=wiki_page.content,
-            metadata={
-                **main_meta,
-                **add_meta,
-            },
-        )
-        return doc
+        return Document(page_content=wiki_page.content, metadata=main_meta | add_meta)
 
     def _fetch_page(self, page: str) -> Optional[str]:
         try:

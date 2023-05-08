@@ -67,7 +67,7 @@ class FileSystemBlobLoader(BlobLoader):
         """Yield blobs that match the requested pattern."""
         paths = self.path.glob(self.glob)
         for path in paths:
-            if path.is_file():
-                if self.suffixes and path.suffix not in self.suffixes:
-                    continue
+            if path.is_file() and (
+                not self.suffixes or path.suffix in self.suffixes
+            ):
                 yield Blob.from_path(str(path))

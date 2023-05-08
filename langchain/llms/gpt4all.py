@@ -154,10 +154,10 @@ class GPT4All(LLM):
         """Validate that the python package exists in the environment."""
         try:
             backend = values["backend"]
-            if backend == "llama":
-                from pygpt4all import GPT4All as GPT4AllModel
-            elif backend == "gptj":
+            if backend == "gptj":
                 from pygpt4all import GPT4All_J as GPT4AllModel
+            elif backend == "llama":
+                from pygpt4all import GPT4All as GPT4AllModel
             else:
                 raise ValueError(f"Incorrect gpt4all backend {cls.backend}")
 
