@@ -10,8 +10,30 @@ from typing import (
     Mapping,
     Optional,
     Tuple,
+    Type,
 )
 
+from langchain_core.messages import (
+    AIMessage,
+    AIMessageChunk,
+    BaseMessage,
+    BaseMessageChunk,
+    ChatMessage,
+    ChatMessageChunk,
+    FunctionMessage,
+    FunctionMessageChunk,
+    HumanMessage,
+    HumanMessageChunk,
+    SystemMessage,
+    SystemMessageChunk,
+)
+from langchain_core.outputs import (
+    ChatGeneration,
+    ChatGenerationChunk,
+    ChatResult,
+    GenerationChunk,
+)
+from langchain_core.pydantic_v1 import Field, root_validator
 from requests.exceptions import HTTPError
 from tenacity import (
     RetryCallState,
@@ -26,23 +48,6 @@ from langchain.chat_models.base import (
     BaseChatModel,
     _generate_from_stream,
 )
-from langchain.pydantic_v1 import Field, root_validator
-from langchain.schema import ChatGeneration, ChatResult
-from langchain.schema.messages import (
-    AIMessage,
-    AIMessageChunk,
-    BaseMessage,
-    BaseMessageChunk,
-    ChatMessage,
-    ChatMessageChunk,
-    FunctionMessage,
-    FunctionMessageChunk,
-    HumanMessage,
-    HumanMessageChunk,
-    SystemMessage,
-    SystemMessageChunk,
-)
-from langchain.schema.output import ChatGenerationChunk, GenerationChunk
 from langchain.utils import get_from_dict_or_env
 
 logger = logging.getLogger(__name__)
@@ -153,7 +158,7 @@ def _create_retry_decorator(
 
 def _convert_delta_to_message_chunk(
     _dict: Mapping[str, Any],
-    default_class: type[BaseMessageChunk],
+    default_class: Type[BaseMessageChunk],
     length: int,
 ) -> BaseMessageChunk:
     role = _dict.get("role")
@@ -318,7 +323,14 @@ class ChatTongyi(BaseChatModel):
             )
             return _generate_from_stream(stream_iter)
 
+        if not messages:
+            raise ValueError("No messages provided.")
+
         message_dicts, params = self._create_message_dicts(messages, stop)
+
+        if message_dicts[-1]["role"] != "user":
+            raise ValueError("Last message should be user message.")
+
         params = {**params, **kwargs}
         response = self.completion_with_retry(
             messages=message_dicts, run_manager=run_manager, **params
@@ -352,9 +364,10 @@ class ChatTongyi(BaseChatModel):
                 dict(finish_reason=finish_reason) if finish_reason is not None else None
             )
             default_chunk_class = chunk.__class__
-            yield ChatGenerationChunk(message=chunk, generation_info=generation_info)
+            chunk = ChatGenerationChunk(message=chunk, generation_info=generation_info)
+            yield chunk
             if run_manager:
-                run_manager.on_llm_new_token(chunk.content, chunk=chunk)
+                run_manager.on_llm_new_token(chunk.text, chunk=chunk)
             length = len(choice["message"]["content"])
 
     def _create_message_dicts(
@@ -374,7 +387,7 @@ class ChatTongyi(BaseChatModel):
     def _client_params(self) -> Dict[str, Any]:
         """Get the parameters used for the openai client."""
         creds: Dict[str, Any] = {
-            "dashscope_api_key": self.dashscope_api_key,
+            "api_key": self.dashscope_api_key,
         }
         return {**self._default_params, **creds}
 

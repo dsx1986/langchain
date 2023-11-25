@@ -22,16 +22,20 @@ from langchain.vectorstores.base import VectorStore
 from langchain.vectorstores.utils import maximal_marginal_relevance
 
 if TYPE_CHECKING:
+    from langchain_core.embeddings import Embeddings
     from pymongo.collection import Collection
-
-    from langchain.schema.embeddings import Embeddings
 
 
 # Before Python 3.11 native StrEnum is not available
 class CosmosDBSimilarityType(str, Enum):
-    COS = "COS"  # CosineSimilarity
-    IP = "IP"  # inner - product
-    L2 = "L2"  # Euclidean distance
+    """Cosmos DB Similarity Type as enumerator."""
+
+    COS = "COS"
+    """CosineSimilarity"""
+    IP = "IP"
+    """inner - product"""
+    L2 = "L2"
+    """Euclidean distance"""
 
 
 CosmosDBDocumentType = TypeVar("CosmosDBDocumentType", bound=Dict[str, Any])

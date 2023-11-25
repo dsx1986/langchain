@@ -51,12 +51,13 @@ try:
 except ImportError:
     from sqlalchemy.ext.declarative import declarative_base
 
+from langchain_core.caches import RETURN_VAL_TYPE, BaseCache
+from langchain_core.embeddings import Embeddings
+from langchain_core.load.dump import dumps
+from langchain_core.load.load import loads
+from langchain_core.outputs import ChatGeneration, Generation
+
 from langchain.llms.base import LLM, get_prompts
-from langchain.load.dump import dumps
-from langchain.load.load import loads
-from langchain.schema import ChatGeneration, Generation
-from langchain.schema.cache import RETURN_VAL_TYPE, BaseCache
-from langchain.schema.embeddings import Embeddings
 from langchain.utils import get_from_env
 from langchain.vectorstores.redis import Redis as RedisVectorstore
 
@@ -506,7 +507,7 @@ class RedisSemanticCache(BaseCache):
                 index_schema=cast(Dict, self.DEFAULT_SCHEMA),
             )
             _embedding = self.embedding.embed_query(text="test")
-            redis._create_index(dim=len(_embedding))
+            redis._create_index_if_not_exist(dim=len(_embedding))
             self._cache_dict[index_name] = redis
 
         return self._cache_dict[index_name]

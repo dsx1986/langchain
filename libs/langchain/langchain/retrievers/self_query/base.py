@@ -2,6 +2,13 @@
 import logging
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Type, Union
 
+from langchain_core.documents import Document
+from langchain_core.language_models import BaseLanguageModel
+from langchain_core.pydantic_v1 import BaseModel, Field, root_validator
+from langchain_core.retrievers import BaseRetriever
+from langchain_core.runnables import Runnable
+from langchain_core.vectorstores import VectorStore
+
 from langchain.callbacks.manager import (
     AsyncCallbackManagerForRetrieverRun,
     CallbackManagerForRetrieverRun,
@@ -9,7 +16,6 @@ from langchain.callbacks.manager import (
 from langchain.chains.query_constructor.base import load_query_constructor_runnable
 from langchain.chains.query_constructor.ir import StructuredQuery, Visitor
 from langchain.chains.query_constructor.schema import AttributeInfo
-from langchain.pydantic_v1 import BaseModel, Field, root_validator
 from langchain.retrievers.self_query.chroma import ChromaTranslator
 from langchain.retrievers.self_query.dashvector import DashvectorTranslator
 from langchain.retrievers.self_query.deeplake import DeepLakeTranslator
@@ -24,9 +30,6 @@ from langchain.retrievers.self_query.supabase import SupabaseVectorTranslator
 from langchain.retrievers.self_query.timescalevector import TimescaleVectorTranslator
 from langchain.retrievers.self_query.vectara import VectaraTranslator
 from langchain.retrievers.self_query.weaviate import WeaviateTranslator
-from langchain.schema import BaseRetriever, Document
-from langchain.schema.language_model import BaseLanguageModel
-from langchain.schema.runnable import Runnable
 from langchain.vectorstores import (
     Chroma,
     DashVector,
@@ -41,7 +44,6 @@ from langchain.vectorstores import (
     SupabaseVectorStore,
     TimescaleVector,
     Vectara,
-    VectorStore,
     Weaviate,
 )
 
@@ -203,11 +205,17 @@ class SelfQueryRetriever(BaseRetriever, BaseModel):
             structured_query_translator = _get_builtin_translator(vectorstore)
         chain_kwargs = chain_kwargs or {}
 
-        if "allowed_comparators" not in chain_kwargs:
+        if (
+            "allowed_comparators" not in chain_kwargs
+            and structured_query_translator.allowed_comparators is not None
+        ):
             chain_kwargs[
                 "allowed_comparators"
             ] = structured_query_translator.allowed_comparators
-        if "allowed_operators" not in chain_kwargs:
+        if (
+            "allowed_operators" not in chain_kwargs
+            and structured_query_translator.allowed_operators is not None
+        ):
             chain_kwargs[
                 "allowed_operators"
             ] = structured_query_translator.allowed_operators

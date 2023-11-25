@@ -7,6 +7,15 @@ from abc import abstractmethod
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 
+from langchain_core.documents import Document
+from langchain_core.language_models import BaseLanguageModel
+from langchain_core.messages import BaseMessage
+from langchain_core.prompts import BasePromptTemplate
+from langchain_core.pydantic_v1 import BaseModel, Extra, Field, root_validator
+from langchain_core.retrievers import BaseRetriever
+from langchain_core.runnables.config import RunnableConfig
+from langchain_core.vectorstores import VectorStore
+
 from langchain.callbacks.manager import (
     AsyncCallbackManagerForChainRun,
     CallbackManagerForChainRun,
@@ -18,11 +27,6 @@ from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.chains.conversational_retrieval.prompts import CONDENSE_QUESTION_PROMPT
 from langchain.chains.llm import LLMChain
 from langchain.chains.question_answering import load_qa_chain
-from langchain.pydantic_v1 import BaseModel, Extra, Field, root_validator
-from langchain.schema import BasePromptTemplate, BaseRetriever, Document
-from langchain.schema.language_model import BaseLanguageModel
-from langchain.schema.messages import BaseMessage
-from langchain.schema.vectorstore import VectorStore
 
 # Depending on the memory type and configuration, the chat history format may differ.
 # This needs to be consolidated.
@@ -52,7 +56,7 @@ def _get_chat_history(chat_history: List[CHAT_TURN_TYPE]) -> str:
 
 class InputType(BaseModel):
     question: str
-    chat_history: List[CHAT_TURN_TYPE]
+    chat_history: List[CHAT_TURN_TYPE] = Field(default_factory=list)
 
 
 class BaseConversationalRetrievalChain(Chain):
@@ -95,8 +99,9 @@ class BaseConversationalRetrievalChain(Chain):
         """Input keys."""
         return ["question", "chat_history"]
 
-    @property
-    def input_schema(self) -> Type[BaseModel]:
+    def get_input_schema(
+        self, config: Optional[RunnableConfig] = None
+    ) -> Type[BaseModel]:
         return InputType
 
     @property
@@ -245,7 +250,7 @@ class ConversationalRetrievalChain(BaseConversationalRetrievalChain):
             from langchain.chains import (
                 StuffDocumentsChain, LLMChain, ConversationalRetrievalChain
             )
-            from langchain.prompts import PromptTemplate
+            from langchain_core.prompts import PromptTemplate
             from langchain.llms import OpenAI
 
             combine_docs_chain = StuffDocumentsChain(...)
@@ -282,7 +287,7 @@ class ConversationalRetrievalChain(BaseConversationalRetrievalChain):
             self.combine_docs_chain, StuffDocumentsChain
         ):
             tokens = [
-                self.combine_docs_chain.llm_chain.llm.get_num_tokens(doc.page_content)
+                self.combine_docs_chain.llm_chain._get_num_tokens(doc.page_content)
                 for doc in docs
             ]
             token_count = sum(tokens[:num_docs])
