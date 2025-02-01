@@ -1,15 +1,16 @@
 """LLM Chains for evaluating question answering."""
+
 from __future__ import annotations
 
 import re
 import string
 from typing import Any, List, Optional, Sequence, Tuple
 
+from langchain_core.callbacks.manager import Callbacks
 from langchain_core.language_models import BaseLanguageModel
 from langchain_core.prompts import PromptTemplate
-from langchain_core.pydantic_v1 import Extra
+from pydantic import ConfigDict
 
-from langchain.callbacks.manager import Callbacks
 from langchain.chains.llm import LLMChain
 from langchain.evaluation.qa.eval_prompt import CONTEXT_PROMPT, COT_PROMPT, PROMPT
 from langchain.evaluation.schema import LLMEvalChain, StringEvaluator
@@ -72,10 +73,13 @@ class QAEvalChain(LLMChain, StringEvaluator, LLMEvalChain):
 
     output_key: str = "results"  #: :meta private:
 
-    class Config:
-        """Configuration for the QAEvalChain."""
+    model_config = ConfigDict(
+        extra="ignore",
+    )
 
-        extra = Extra.ignore
+    @classmethod
+    def is_lc_serializable(cls) -> bool:
+        return False
 
     @property
     def evaluation_name(self) -> str:
@@ -204,6 +208,10 @@ class QAEvalChain(LLMChain, StringEvaluator, LLMEvalChain):
 class ContextQAEvalChain(LLMChain, StringEvaluator, LLMEvalChain):
     """LLM Chain for evaluating QA w/o GT based on context"""
 
+    @classmethod
+    def is_lc_serializable(cls) -> bool:
+        return False
+
     @property
     def requires_reference(self) -> bool:
         """Whether the chain requires a reference string."""
@@ -214,10 +222,9 @@ class ContextQAEvalChain(LLMChain, StringEvaluator, LLMEvalChain):
         """Whether the chain requires an input string."""
         return True
 
-    class Config:
-        """Configuration for the QAEvalChain."""
-
-        extra = Extra.ignore
+    model_config = ConfigDict(
+        extra="ignore",
+    )
 
     @classmethod
     def _validate_input_vars(cls, prompt: PromptTemplate) -> None:
@@ -327,6 +334,10 @@ class ContextQAEvalChain(LLMChain, StringEvaluator, LLMEvalChain):
 
 class CotQAEvalChain(ContextQAEvalChain):
     """LLM Chain for evaluating QA using chain of thought reasoning."""
+
+    @classmethod
+    def is_lc_serializable(cls) -> bool:
+        return False
 
     @property
     def evaluation_name(self) -> str:

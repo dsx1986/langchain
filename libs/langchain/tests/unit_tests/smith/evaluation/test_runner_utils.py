@@ -1,4 +1,5 @@
 """Test the LangSmith evaluation helpers."""
+
 import uuid
 from datetime import datetime
 from typing import Any, Dict, Iterator, List, Optional, Union
@@ -90,7 +91,7 @@ def test__validate_example_inputs_for_language_model(inputs: Dict[str, Any]) -> 
     _INVALID_PROMPTS,
 )
 def test__validate_example_inputs_for_language_model_invalid(
-    inputs: Dict[str, Any]
+    inputs: Dict[str, Any],
 ) -> None:
     mock_ = mock.MagicMock()
     mock_.inputs = inputs
@@ -172,7 +173,7 @@ def test_run_llm_or_chain_with_input_mapper() -> None:
         assert "the right input" in inputs
         return {"output": "2"}
 
-    mock_chain = TransformChain(
+    mock_chain = TransformChain(  # type: ignore[call-arg]
         input_variables=["the right input"],
         output_variables=["output"],
         transform=run_val,
@@ -248,6 +249,7 @@ async def test_arun_on_dataset(monkeypatch: pytest.MonkeyPatch) -> None:
         owner_id="owner",
         created_at=_CREATED_AT,
         tenant_id=_TENANT_ID,
+        _host_url="http://localhost:1984",
     )
     uuids = [
         "0c193153-2309-4704-9a47-17aee4fb25c8",
@@ -314,12 +316,15 @@ async def test_arun_on_dataset(monkeypatch: pytest.MonkeyPatch) -> None:
         proj.id = "123"
         return proj
 
-    with mock.patch.object(
-        Client, "read_dataset", new=mock_read_dataset
-    ), mock.patch.object(Client, "list_examples", new=mock_list_examples), mock.patch(
-        "langchain.smith.evaluation.runner_utils._arun_llm_or_chain",
-        new=mock_arun_chain,
-    ), mock.patch.object(Client, "create_project", new=mock_create_project):
+    with (
+        mock.patch.object(Client, "read_dataset", new=mock_read_dataset),
+        mock.patch.object(Client, "list_examples", new=mock_list_examples),
+        mock.patch(
+            "langchain.smith.evaluation.runner_utils._arun_llm_or_chain",
+            new=mock_arun_chain,
+        ),
+        mock.patch.object(Client, "create_project", new=mock_create_project),
+    ):
         client = Client(api_url="http://localhost:1984", api_key="123")
         chain = mock.MagicMock()
         chain.input_keys = ["foothing"]
@@ -344,6 +349,7 @@ async def test_arun_on_dataset(monkeypatch: pytest.MonkeyPatch) -> None:
                 "feedback": [],
                 # No run since we mock the call to the llm above
                 "execution_time": None,
+                "run_id": None,
             }
             for example in examples
         }

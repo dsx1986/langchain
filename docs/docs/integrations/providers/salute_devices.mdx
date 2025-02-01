@@ -9,7 +9,7 @@ For more info how to get access to GigaChat [follow here](https://developers.sbe
 GigaChat package can be installed via pip from PyPI:
 
 ```bash
-pip install gigachat
+pip install langchain-gigachat
 ```
 
 ## LLMs
@@ -17,7 +17,7 @@ pip install gigachat
 See a [usage example](/docs/integrations/llms/gigachat).
 
 ```python
-from langchain.llms import GigaChat
+from langchain_community.llms import GigaChat
 ```
 
 ## Chat models
@@ -25,5 +25,13 @@ from langchain.llms import GigaChat
 See a [usage example](/docs/integrations/chat/gigachat).
 
 ```python
-from langchain.chat_models import GigaChat
+from langchain_gigachat.chat_models import GigaChat
+```
+
+## Embeddings
+
+See a [usage example](/docs/integrations/text_embedding/gigachat).
+
+```python
+from langchain_gigachat.embeddings import GigaChatEmbeddings
 ```

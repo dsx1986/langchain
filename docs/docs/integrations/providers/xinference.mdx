@@ -60,7 +60,7 @@ Xinference client.
 For local deployment, the endpoint will be http://localhost:9997. 
 
 
-For cluster deployment, the endpoint will be http://${supervisor_host}:9997.
+For cluster deployment, the endpoint will be http://$\{supervisor_host\}:9997.
 
 
 Then, you need to launch a model. You can specify the model names and other attributes 
@@ -76,7 +76,7 @@ A model uid will be returned.
 Example usage:
 
 ```python
-from langchain.llms import Xinference
+from langchain_community.llms import Xinference
 
 llm = Xinference(
     server_url="http://0.0.0.0:9997",

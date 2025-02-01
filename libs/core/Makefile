@@ -6,14 +6,30 @@ all: help
 # Define a variable for the test file path.
 TEST_FILE ?= tests/unit_tests/
 
-test:
-	poetry run pytest $(TEST_FILE)
-
-tests:
-	poetry run pytest $(TEST_FILE)
+test tests:
+	env \
+	-u LANGCHAIN_TRACING_V2 \
+	-u LANGCHAIN_API_KEY \
+	-u LANGSMITH_TRACING \
+	-u LANGCHAIN_PROJECT \
+	poetry run pytest -n auto --disable-socket --allow-unix-socket $(TEST_FILE)
 
 test_watch:
-	poetry run ptw --snapshot-update --now . -- -x tests/unit_tests
+	env \
+	-u LANGCHAIN_TRACING_V2 \
+	-u LANGCHAIN_API_KEY \
+	-u LANGSMITH_TRACING \
+	-u LANGCHAIN_PROJECT \
+	poetry run ptw --snapshot-update --now . --disable-socket --allow-unix-socket -- -vv $(TEST_FILE)
+
+test_profile:
+	poetry run pytest -vv tests/unit_tests/ --profile-svg
+
+check_imports: $(shell find langchain_core -name '*.py')
+	poetry run python ./scripts/check_imports.py $^
+
+extended_tests:
+	poetry run pytest --only-extended --disable-socket --allow-unix-socket $(TEST_FILE)
 
 
 ######################
@@ -22,19 +38,22 @@ test_watch:
 
 # Define a variable for Python and notebook files.
 PYTHON_FILES=.
+MYPY_CACHE=.mypy_cache
 lint format: PYTHON_FILES=.
-lint_diff format_diff: PYTHON_FILES=$(shell git diff --relative=libs/experimental --name-only --diff-filter=d master | grep -E '\.py$$|\.ipynb$$')
+lint_diff format_diff: PYTHON_FILES=$(shell git diff --relative=libs/core --name-only --diff-filter=d master | grep -E '\.py$$|\.ipynb$$')
+lint_package: PYTHON_FILES=langchain_core
+lint_tests: PYTHON_FILES=tests
+lint_tests: MYPY_CACHE=.mypy_cache_test
 
-lint lint_diff:
-	./scripts/check_pydantic.sh .
-	./scripts/check_imports.sh
-	poetry run ruff .
+lint lint_diff lint_package lint_tests:
+	./scripts/lint_imports.sh
+	[ "$(PYTHON_FILES)" = "" ] || poetry run ruff check $(PYTHON_FILES)
 	[ "$(PYTHON_FILES)" = "" ] || poetry run ruff format $(PYTHON_FILES) --diff
-	[ "$(PYTHON_FILES)" = "" ] || poetry run mypy $(PYTHON_FILES)
+	[ "$(PYTHON_FILES)" = "" ] || mkdir -p $(MYPY_CACHE) && poetry run mypy $(PYTHON_FILES) --cache-dir $(MYPY_CACHE)
 
 format format_diff:
-	poetry run ruff format $(PYTHON_FILES)
-	poetry run ruff --select I --fix $(PYTHON_FILES)
+	[ "$(PYTHON_FILES)" = "" ] || poetry run ruff format $(PYTHON_FILES)
+	[ "$(PYTHON_FILES)" = "" ] || poetry run ruff check --fix $(PYTHON_FILES)
 
 spell_check:
 	poetry run codespell --toml pyproject.toml
