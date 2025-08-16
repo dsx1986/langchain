@@ -28,21 +28,21 @@ export default function VectorStoreTabs(props) {
         {
             value: "Chroma",
             label: "Chroma",
-            text: `from langchain_chroma import Chroma\n${useFakeEmbeddings ? fakeEmbeddingsString : ""}\n${vectorStoreVarName} = Chroma(embedding_function=embeddings)`,
+            text: `from langchain_chroma import Chroma\n${useFakeEmbeddings ? fakeEmbeddingsString : ""}\n${vectorStoreVarName} = Chroma(\n    collection_name="example_collection",\n    embedding_function=embeddings,\n    persist_directory="./chroma_langchain_db",  # Where to save data locally, remove if not necessary\n)`,
             packageName: "langchain-chroma",
             default: false,
         },
         {
             value: "FAISS",
             label: "FAISS",
-            text: `from langchain_community.vectorstores import FAISS\n${useFakeEmbeddings ? fakeEmbeddingsString : ""}\n${vectorStoreVarName} = FAISS(embedding_function=embeddings)`,
+            text: `import faiss\nfrom langchain_community.docstore.in_memory import InMemoryDocstore\nfrom langchain_community.vectorstores import FAISS\n\nembedding_dim = len(embeddings.embed_query("hello world"))\nindex = faiss.IndexFlatL2(embedding_dim)\n${useFakeEmbeddings ? fakeEmbeddingsString : ""}\n${vectorStoreVarName} = FAISS(\n    embedding_function=embeddings,\n    index=index,\n    docstore=InMemoryDocstore(),\n    index_to_docstore_id={},\n)`,
             packageName: "langchain-community",
             default: false,
         },
         {
             value: "Milvus",
             label: "Milvus",
-            text: `from langchain_milvus import Milvus\n${useFakeEmbeddings ? fakeEmbeddingsString : ""}\n${vectorStoreVarName} = Milvus(embedding_function=embeddings)`,
+            text: `from langchain_milvus import Milvus\n\nURI = "./milvus_example.db"\n${useFakeEmbeddings ? fakeEmbeddingsString : ""}\n${vectorStoreVarName} = Milvus(\n    embedding_function=embeddings,\n    connection_args={"uri": URI},\n    index_params={"index_type": "FLAT", "metric_type": "L2"},\n)`,
             packageName: "langchain-milvus",
             default: false,
         },
@@ -61,6 +61,13 @@ export default function VectorStoreTabs(props) {
             default: false,
         },
         {
+          value: "PGVectorStore",
+          label: "PGVectorStore",
+          text: `from langchain_postgres import PGEngine, PGVectorStore\n${useFakeEmbeddings ? fakeEmbeddingsString : ""}\n$engine = PGEngine.from_connection_string(\n    url="postgresql+psycopg://..."\n)\n\n${vectorStoreVarName} = PGVectorStore.create_sync(\n    engine=pg_engine,\n    table_name='test_table',\n    embedding_service=embedding\n)`,
+          packageName: "langchain-postgres",
+          default: false,
+      },
+        {
             value: "Pinecone",
             label: "Pinecone",
             text: `from langchain_pinecone import PineconeVectorStore\nfrom pinecone import Pinecone\n${useFakeEmbeddings ? fakeEmbeddingsString : ""}\npc = Pinecone(api_key=...)\nindex = pc.Index(index_name)\n\n${vectorStoreVarName} = PineconeVectorStore(embedding=embeddings, index=index)`,
@@ -70,7 +77,7 @@ export default function VectorStoreTabs(props) {
         {
             value: "Qdrant",
             label: "Qdrant",
-            text: `from langchain_qdrant import QdrantVectorStore\nfrom qdrant_client import QdrantClient\n${useFakeEmbeddings ? fakeEmbeddingsString : ""}\nclient = QdrantClient(":memory:")\n${vectorStoreVarName} = QdrantVectorStore(\n    client=client,\n    collection_name="test",\n    embedding=embeddings,\n)`,
+            text: `from qdrant_client.models import Distance, VectorParams\nfrom langchain_qdrant import QdrantVectorStore\nfrom qdrant_client import QdrantClient\n${useFakeEmbeddings ? fakeEmbeddingsString : ""}\nclient = QdrantClient(":memory:")\n\nvector_size = len(embeddings.embed_query("sample text"))\n\nif not client.collection_exists("test"):\n    client.create_collection(\n        collection_name="test",\n        vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE)\n    )\n${vectorStoreVarName} = QdrantVectorStore(\n    client=client,\n    collection_name="test",\n    embedding=embeddings,\n)`,
             packageName: "langchain-qdrant",
             default: false,
         },

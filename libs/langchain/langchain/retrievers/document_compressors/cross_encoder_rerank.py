@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import operator
-from typing import Optional, Sequence
+from collections.abc import Sequence
+from typing import Optional
 
 from langchain_core.callbacks import Callbacks
 from langchain_core.documents import BaseDocumentCompressor, Document
 from pydantic import ConfigDict
+from typing_extensions import override
 
 from langchain.retrievers.document_compressors.cross_encoder import BaseCrossEncoder
 
@@ -24,6 +26,7 @@ class CrossEncoderReranker(BaseDocumentCompressor):
         extra="forbid",
     )
 
+    @override
     def compress_documents(
         self,
         documents: Sequence[Document],

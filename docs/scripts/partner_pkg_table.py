@@ -93,7 +93,7 @@ packages_n = [_enrich_package(p) for p in data["packages"]]
 packages = [p for p in packages_n if p is not None]
 
 # sort by downloads
-packages_sorted = sorted(packages, key=lambda p: p["downloads"], reverse=True)
+packages_sorted = sorted(packages, key=lambda p: p.get("downloads", 0), reverse=True)
 
 
 def package_row(p: dict) -> str:
@@ -101,7 +101,12 @@ def package_row(p: dict) -> str:
     link = p["provider_page"]
     title = p["name_title"]
     provider = f"[{title}]({link})" if link else title
-    return f"| {provider} | [{p['name']}]({p['package_url']}) | ![PyPI - Downloads](https://img.shields.io/pypi/dm/{p['name']}?style=flat-square&label=%20&color=blue) | ![PyPI - Version](https://img.shields.io/pypi/v/{p['name']}?style=flat-square&label=%20&color=orange) | {js} |"
+    return (
+        f"| {provider} | [{p['name']}]({p['package_url']}) | "
+        f"![Downloads](https://static.pepy.tech/badge/{p['name']}/month) | "
+        f"![PyPI - Version](https://img.shields.io/pypi/v/{p['name']}?style=flat-square&label=%20&color=orange) | "
+        f"{js} |"
+    )
 
 
 def table() -> str:
@@ -126,8 +131,6 @@ If you'd like to write your own integration, see [Extending LangChain](/docs/how
 If you'd like to contribute an integration, see [Contributing integrations](/docs/contributing/how_to/integrations/).
 
 :::
-
-LangChain integrates with many providers.
 
 ## Integration Packages
 

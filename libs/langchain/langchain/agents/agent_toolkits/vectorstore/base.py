@@ -1,6 +1,6 @@
 """VectorStore agent."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 from langchain_core._api import deprecated
 from langchain_core.callbacks.base import BaseCallbackManager
@@ -35,14 +35,15 @@ def create_vectorstore_agent(
     toolkit: VectorStoreToolkit,
     callback_manager: Optional[BaseCallbackManager] = None,
     prefix: str = PREFIX,
-    verbose: bool = False,
-    agent_executor_kwargs: Optional[Dict[str, Any]] = None,
+    verbose: bool = False,  # noqa: FBT001,FBT002
+    agent_executor_kwargs: Optional[dict[str, Any]] = None,
     **kwargs: Any,
 ) -> AgentExecutor:
     """Construct a VectorStore agent from an LLM and tools.
 
-    Note: this class is deprecated. See below for a replacement that uses tool
-    calling methods and LangGraph. Install LangGraph with:
+    .. note::
+        This class is deprecated. See below for a replacement that uses tool
+        calling methods and LangGraph. Install LangGraph with:
 
         .. code-block:: bash
 
@@ -90,6 +91,7 @@ def create_vectorstore_agent(
 
     Returns:
         AgentExecutor: Returns a callable AgentExecutor object. Either you can call it or use run method with the query to get the response
+
     """  # noqa: E501
     tools = toolkit.get_tools()
     prompt = ZeroShotAgent.create_prompt(tools, prefix=prefix)
@@ -128,14 +130,15 @@ def create_vectorstore_router_agent(
     toolkit: VectorStoreRouterToolkit,
     callback_manager: Optional[BaseCallbackManager] = None,
     prefix: str = ROUTER_PREFIX,
-    verbose: bool = False,
-    agent_executor_kwargs: Optional[Dict[str, Any]] = None,
+    verbose: bool = False,  # noqa: FBT001,FBT002
+    agent_executor_kwargs: Optional[dict[str, Any]] = None,
     **kwargs: Any,
 ) -> AgentExecutor:
     """Construct a VectorStore router agent from an LLM and tools.
 
-    Note: this class is deprecated. See below for a replacement that uses tool
-    calling methods and LangGraph. Install LangGraph with:
+    .. note::
+        This class is deprecated. See below for a replacement that uses tool calling
+        methods and LangGraph. Install LangGraph with:
 
         .. code-block:: bash
 
@@ -198,6 +201,7 @@ def create_vectorstore_router_agent(
 
     Returns:
         AgentExecutor: Returns a callable AgentExecutor object. Either you can call it or use run method with the query to get the response.
+
     """  # noqa: E501
     tools = toolkit.get_tools()
     prompt = ZeroShotAgent.create_prompt(tools, prefix=prefix)

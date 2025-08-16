@@ -23,7 +23,7 @@ K = TypeVar("K")
 V = TypeVar("V")
 
 
-class BaseStore(Generic[K, V], ABC):
+class BaseStore(ABC, Generic[K, V]):
     """Abstract interface for a key-value store.
 
     This is an interface that's meant to abstract away the details of
@@ -76,6 +76,7 @@ class BaseStore(Generic[K, V], ABC):
                         for key in self.store.keys():
                             if key.startswith(prefix):
                                 yield key
+
     """
 
     @abstractmethod
@@ -107,14 +108,14 @@ class BaseStore(Generic[K, V], ABC):
         """Set the values for the given keys.
 
         Args:
-            key_value_pairs (Sequence[Tuple[K, V]]): A sequence of key-value pairs.
+            key_value_pairs (Sequence[tuple[K, V]]): A sequence of key-value pairs.
         """
 
     async def amset(self, key_value_pairs: Sequence[tuple[K, V]]) -> None:
         """Async set the values for the given keys.
 
         Args:
-            key_value_pairs (Sequence[Tuple[K, V]]): A sequence of key-value pairs.
+            key_value_pairs (Sequence[tuple[K, V]]): A sequence of key-value pairs.
         """
         return await run_in_executor(None, self.mset, key_value_pairs)
 
@@ -209,7 +210,7 @@ class InMemoryBaseStore(BaseStore[str, V], Generic[V]):
         """Set the values for the given keys.
 
         Args:
-            key_value_pairs (Sequence[Tuple[str, V]]): A sequence of key-value pairs.
+            key_value_pairs (Sequence[tuple[str, V]]): A sequence of key-value pairs.
 
         Returns:
             None
@@ -221,7 +222,7 @@ class InMemoryBaseStore(BaseStore[str, V], Generic[V]):
         """Async set the values for the given keys.
 
         Args:
-            key_value_pairs (Sequence[Tuple[str, V]]): A sequence of key-value pairs.
+            key_value_pairs (Sequence[tuple[str, V]]): A sequence of key-value pairs.
 
         Returns:
             None
@@ -284,7 +285,7 @@ class InMemoryStore(InMemoryBaseStore[Any]):
     """In-memory store for any type of data.
 
     Attributes:
-        store (Dict[str, Any]): The underlying dictionary that stores
+        store (dict[str, Any]): The underlying dictionary that stores
             the key-value pairs.
 
     Examples:
@@ -302,6 +303,7 @@ class InMemoryStore(InMemoryBaseStore[Any]):
             # ['key2']
             list(store.yield_keys(prefix='k'))
             # ['key2']
+
     """
 
 
@@ -309,7 +311,7 @@ class InMemoryByteStore(InMemoryBaseStore[bytes]):
     """In-memory store for bytes.
 
     Attributes:
-        store (Dict[str, bytes]): The underlying dictionary that stores
+        store (dict[str, bytes]): The underlying dictionary that stores
             the key-value pairs.
 
     Examples:
@@ -327,6 +329,7 @@ class InMemoryByteStore(InMemoryBaseStore[bytes]):
             # ['key2']
             list(store.yield_keys(prefix='k'))
             # ['key2']
+
     """
 
 
